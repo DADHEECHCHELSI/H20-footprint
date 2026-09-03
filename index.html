@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>My H2O Footprint - Enhanced</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Work+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#081820;
+    --ink-2:#0C222B;
+    --card:#0F2A33;
+    --card-edge: rgba(255,255,255,.07);
+    --water:#4FC3D1;
+    --water-deep:#1F7B8C;
+    --clay:#E0965A;
+    --clay-deep:#A85B2C;
+    --sand:#F5ECDD;
+    --sand-dim:#A9C4C6;
+    --good:#57D38C;
+    --avg:#F2CB4E;
+    --high:#F0913F;
+    --bad:#EF4F4F;
+    --line: rgba(245,236,221,0.10);
+    --accent: var(--water);
+    --accent-deep: var(--water-deep);
+    --accent-soft: rgba(79,195,209,.16);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--ink);color:var(--sand);font-family:'Work Sans',sans-serif;-webkit-font-smoothing:antialiased;height:100%;}
+  body{
+    background:
+      radial-gradient(ellipse 900px 500px at 15% -10%, rgba(79,195,209,.16), transparent 60%),
+      radial-gradient(ellipse 700px 500px at 110% 10%, rgba(224,150,90,.10), transparent 60%),
+      var(--ink);
+    min-height:100vh;
+  }
+  body[data-theme="B"]{--accent:var(--clay); --accent-deep:var(--clay-deep); --accent-soft: rgba(224,150,90,.16);}
+  body[data-theme="C"]{--accent:#6C8EEF; --accent-deep:#4A63C4; --accent-soft: rgba(108,142,239,.16);}
+
+  svg.bg-ripples{position:fixed; inset:0; width:100%; height:100%; z-index:0; opacity:.35; pointer-events:none;}
+
+  .app-shell{max-width:640px;margin:0 auto;min-height:100vh;padding:18px 20px 118px;position:relative;z-index:1;}
+
+  .brand{display:flex; align-items:center; gap:9px; justify-content:center; margin-bottom:10px;}
+  .brand-drop{width:20px;height:20px;flex:none;}
+  .brand-name{font-family:'Fraunces',serif; font-weight:600; font-size:15px; letter-spacing:.01em;
+    background:linear-gradient(90deg, var(--water), var(--clay));
+    -webkit-background-clip:text; background-clip:text; color:transparent;}
+
+  /* ---------- Progress Pot ---------- */
+  .pot-zone{display:flex;flex-direction:column;align-items:center;gap:5px;position:sticky;top:0;padding-bottom:8px;z-index:20;}
+  .pot-svg{width:64px;height:76px;overflow:visible; filter:drop-shadow(0 6px 14px rgba(0,0,0,.35));}
+  .pot-body-outline{fill:none;stroke:var(--sand-dim);stroke-width:2;opacity:.5;transition:stroke .6s ease;}
+  body[data-theme="B"] .pot-body-outline{stroke:var(--clay);}
+  body[data-theme="C"] .pot-body-outline{stroke:#6C8EEF;}
+  .wave-fill{fill:var(--water); transition:fill .6s ease;}
+  body[data-theme="B"] .wave-fill{fill:var(--clay);}
+  body[data-theme="C"] .wave-fill{fill:#6C8EEF;}
+  .grain-dot{fill:var(--sand);opacity:0;transition:opacity .6s ease;}
+  body[data-theme="B"] .grain-dot{opacity:.5;}
+  .progress-label{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.08em;color:var(--sand-dim);text-transform:uppercase;}
+  .progress-dots{display:flex;gap:4px;margin-top:1px;}
+  .pdot{width:5px;height:5px;border-radius:50%;background:var(--line); transition:background .3s;}
+  .pdot.on{background:var(--accent);}
+
+  /* ---------- Card / stage ---------- */
+  #stage{margin-top:4px;}
+  .card{
+    background:linear-gradient(165deg, var(--card), var(--ink-2));
+    border:1px solid var(--card-edge);
+    border-radius:24px;
+    padding:26px 24px 22px;
+    position:relative;
+    animation:riseIn .45s cubic-bezier(.2,.8,.2,1);
+    box-shadow:0 30px 60px -32px rgba(0,0,0,.75);
+    overflow:hidden;
+  }
+  .card::before{
+    content:"";
+    position:absolute; top:0; left:0; right:0; height:3px;
+    background:linear-gradient(90deg, var(--water), var(--clay));
+  }
+  @keyframes riseIn{
+    from{opacity:0; transform:translateY(14px) scale(.985);}
+    to{opacity:1; transform:translateY(0) scale(1);}
+  }
+
+  .icon-badge{
+    width:46px;height:46px;border-radius:14px;flex:none;
+    background:var(--accent-soft); border:1px solid var(--card-edge);
+    display:flex; align-items:center; justify-content:center;
+    margin-bottom:12px;
+  }
+  .icon-badge svg{width:24px;height:24px;stroke:var(--accent); fill:none;}
+
+  .inline-image{width:100%; max-width:280px; margin:16px auto; display:block; border-radius:16px;
+    background:radial-gradient(ellipse at center, rgba(255,255,255,.05), rgba(255,255,255,0) 70%);
+    padding:6px;}
+
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    text-transform:uppercase;
+    letter-spacing:.14em;
+    font-size:10.5px;
+    color:var(--accent);
+    margin-bottom:8px;
+    display:flex;align-items:center;gap:8px;
+  }
+  .eyebrow .line{flex:1;height:1px;background:var(--line);}
+  h1.title{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:24px;
+    line-height:1.18;
+    margin:0 0 8px;
+  }
+  .subtitle{color:var(--sand-dim); font-size:14px; line-height:1.55; margin-bottom:4px;}
+
+  .part-block{margin-top:24px; padding-top:20px; border-top:1px dashed var(--line);}
+  .part-block:first-of-type{margin-top:20px; padding-top:0; border-top:none;}
+  .q-label{font-weight:600; font-size:14.5px; margin-bottom:11px;}
+
+  .options{display:grid; gap:8px;}
+  .option-tile{
+    display:flex; align-items:center; gap:11px;
+    padding:11px 13px; border-radius:13px;
+    border:1.5px solid var(--line);
+    background:rgba(255,255,255,.02);
+    cursor:pointer; transition:all .18s ease; user-select:none;
+  }
+  .option-tile:hover{border-color:var(--accent); transform:translateY(-1px);}
+  .option-tile.selected{border-color:var(--accent); background:var(--accent-soft);}
+  .checkbox{
+    width:20px; height:20px; border-radius:6px; flex:none;
+    border:2px solid rgba(245,236,221,.32);
+    display:flex; align-items:center; justify-content:center;
+    transition:all .18s ease;
+  }
+  .option-tile.selected .checkbox{background:var(--accent); border-color:var(--accent);}
+  .checkbox svg{width:11px; height:11px; opacity:0; transform:scale(.4); transition:all .18s ease;}
+  .option-tile.selected .checkbox svg{opacity:1; transform:scale(1);}
+  .opt-emoji{font-size:18px; flex:none; width:20px; text-align:center;}
+  .opt-label{flex:1; font-size:13.5px; line-height:1.35;}
+  .opt-zero{opacity:.75; font-style:italic;}
+
+  /* ---------- reference gauge ---------- */
+  .gauge-wrap{margin-top:16px; padding:14px 14px 12px; background:rgba(0,0,0,.16); border-radius:14px; border:1px solid var(--card-edge);}
+  .gauge-label{font-size:10.5px; text-transform:uppercase; letter-spacing:.1em; color:var(--sand-dim); font-family:'JetBrains Mono',monospace; margin-bottom:9px; display:flex; justify-content:space-between;}
+  .gauge-track{position:relative; height:9px; border-radius:6px;
+    background:linear-gradient(90deg, var(--good) 0%, var(--good) 15%, var(--avg) 45%, var(--high) 72%, var(--bad) 100%);
+  }
+  .gauge-marker{
+    position:absolute; top:-5px; width:2px; height:19px; background:var(--sand);
+    transform:translateX(-1px); transition:left .35s cubic-bezier(.2,.8,.2,1); border-radius:2px;
+    box-shadow:0 0 0 3px rgba(255,255,255,.15);
+  }
+  .gauge-ends{display:flex; justify-content:space-between; font-size:10px; color:var(--sand-dim); margin-top:6px;}
+  .impact-line{margin-top:11px; font-size:13px; line-height:1.5; color:var(--sand); min-height:20px;}
+  .impact-line b{color:var(--accent);}
+  .impact-placeholder{color:var(--sand-dim); font-style:italic;}
+
+  .info-box{background:rgba(79,195,209,.08); border-left:4px solid var(--water); padding:12px 14px; border-radius:8px; font-size:13px; line-height:1.5; margin:12px 0;}
+  .info-box.alert{background:rgba(239,79,79,.08); border-left-color:#EF4F4F;}
+  .info-box.note{background:rgba(87,211,140,.08); border-left-color:#57D38C;}
+
+  .comparison-card{background:rgba(255,255,255,.04); border:1px solid var(--card-edge); border-radius:12px; padding:14px; margin:10px 0;}
+  .comparison-card-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--sand-dim); margin-bottom:6px;}
+  .comparison-card-value{font-size:18px; font-weight:700; color:var(--accent); font-family:'JetBrains Mono',monospace;}
+
+  /* ---------- nav ---------- */
+  .nav{
+    position:fixed; left:0; right:0; bottom:0;
+    display:flex; justify-content:center;
+    padding:14px 20px 20px;
+    background:linear-gradient(180deg, transparent, var(--ink) 46%);
+    z-index:30;
+  }
+  .nav-inner{max-width:640px; width:100%; display:flex; gap:10px;}
+  .btn{
+    flex:1; padding:13px 18px; border-radius:13px; border:none;
+    font-family:'Work Sans',sans-serif; font-weight:600; font-size:14px;
+    cursor:pointer; transition:all .15s ease;
+  }
+  .btn-back{background:transparent; color:var(--sand-dim); border:1.5px solid var(--line);}
+  .btn-back:hover{border-color:var(--sand-dim); color:var(--sand);}
+  .btn-next{background:linear-gradient(90deg, var(--water), var(--accent)); color:#062026; box-shadow:0 10px 26px -10px var(--accent-deep); font-weight:700;}
+  .btn-next:disabled{opacity:.3; cursor:not-allowed; box-shadow:none;}
+  .btn-next:not(:disabled):hover{filter:brightness(1.07); transform:translateY(-1px);}
+
+  /* intro */
+  .intro-hero{display:flex; justify-content:center; margin-bottom:8px;}
+  .intro-hero svg{width:78px; height:78px;}
+  .intro-story{font-size:14.5px; line-height:1.7; color:var(--sand-dim); margin:6px 0 16px;}
+  .intro-story em{color:var(--sand); font-style:normal; font-weight:600;}
+  .intro-nudge{font-size:12.5px; color:var(--accent); display:flex; align-items:center; gap:6px;}
+
+  /* results */
+  .score-wrap{margin-top:6px;}
+  .score-badge{display:flex; align-items:center; gap:14px;}
+  .score-num{font-family:'Fraunces',serif; font-size:46px; font-weight:700; line-height:1;}
+  .score-of{font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--sand-dim);}
+  .score-word{display:inline-block; padding:4px 11px; border-radius:100px; font-family:'JetBrains Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:.08em; margin-top:4px;}
+
+  .big-gauge{margin-top:16px;}
+  .big-gauge-track{position:relative; height:16px; border-radius:10px;
+    background:linear-gradient(90deg, var(--good) 0%, var(--good) 12%, var(--avg) 40%, var(--high) 68%, var(--bad) 92%, var(--bad) 100%);
+    box-shadow: inset 0 1px 2px rgba(0,0,0,.3);
+  }
+  .big-gauge-marker{position:absolute; top:-7px; width:3px; height:30px; background:#fff; border-radius:3px; box-shadow:0 0 0 4px rgba(255,255,255,.18), 0 4px 10px rgba(0,0,0,.4); transition:left 1s cubic-bezier(.2,.8,.2,1);}
+  .big-gauge-scale{display:flex; justify-content:space-between; font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--sand-dim); margin-top:8px;}
+
+  .totals-row{display:flex; gap:10px; margin-top:20px;}
+  .total-card{flex:1; padding:14px; border-radius:14px; background:rgba(255,255,255,.03); border:1px solid var(--card-edge); text-align:center;}
+  .total-card .t-label{font-size:11px; color:var(--sand-dim); margin-bottom:6px;}
+  .total-card .t-value{font-family:'JetBrains Mono',monospace; font-size:19px; font-weight:700; color:var(--accent);}
+  .total-card .t-emoji{font-size:18px;}
+
+  .tips{margin-top:20px; display:grid; gap:9px;}
+  .tips-label{font-size:10.5px; text-transform:uppercase; letter-spacing:.1em; color:var(--sand-dim); font-family:'JetBrains Mono',monospace; margin-bottom:2px;}
+  .tip{
+    display:flex; gap:9px; padding:11px 13px; border-radius:12px;
+    background:rgba(255,255,255,.03); border-left:3px solid var(--accent); font-size:13px; line-height:1.5;
+  }
+  .restart-btn{margin-top:18px; width:100%;}
+
+  /* ---------- rotate hint (portrait phones) ---------- */
+  .rotate-hint{display:none; position:fixed; inset:0; z-index:100; background:rgba(4,14,18,.94);
+    flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:30px; gap:12px;}
+  .rotate-hint svg{width:52px;height:52px; animation:rotatePulse 1.6s ease-in-out infinite;}
+  @keyframes rotatePulse{0%,100%{transform:rotate(0deg);} 50%{transform:rotate(90deg);}}
+  .rotate-hint h2{font-family:'Fraunces',serif; font-size:19px; margin:0;}
+  .rotate-hint p{font-size:13px; color:var(--sand-dim); margin:0; max-width:280px;}
+
+  @media (orientation:portrait) and (max-width:900px) and (pointer:coarse){
+    .rotate-hint{display:flex;}
+  }
+
+  /* ---------- landscape phone layout ---------- */
+  @media (orientation:landscape) and (max-height:560px){
+    body{overflow:hidden;}
+    .app-shell{
+      max-width:none; height:100vh; padding:12px 16px 12px 12px;
+      display:flex; flex-direction:row; align-items:stretch; gap:14px;
+    }
+    .brand{flex-direction:column; margin-bottom:8px;}
+    .pot-zone{
+      position:static; flex:0 0 92px; display:flex; flex-direction:column;
+      justify-content:center; align-items:center; padding-bottom:0; height:100%;
+      border-right:1px dashed var(--line); padding-right:12px;
+    }
+    .pot-svg{width:52px;height:62px;}
+    #stage{flex:1; overflow-y:auto; height:100%; padding-bottom:74px; padding-right:2px;}
+    .card{padding:18px 20px 16px;}
+    h1.title{font-size:19px;}
+    .subtitle{font-size:12.5px;}
+    .nav{left:auto; right:16px; bottom:10px; padding:0; background:none; width:calc(100% - 120px); max-width:420px;}
+    .nav-inner{gap:8px;}
+    .btn{padding:11px 14px; font-size:13px;}
+  }
+
+  @media (max-width:400px){
+    h1.title{font-size:21px;}
+    .score-num{font-size:38px;}
+  }
+</style>
+</head>
+<body data-theme="A">
+
+<svg class="bg-ripples" viewBox="0 0 400 800" preserveAspectRatio="xMidYMid slice">
+  <circle cx="60" cy="120" r="140" fill="none" stroke="rgba(79,195,209,.18)" stroke-width="1"/>
+  <circle cx="340" cy="620" r="180" fill="none" stroke="rgba(224,150,90,.14)" stroke-width="1"/>
+  <circle cx="200" cy="400" r="260" fill="none" stroke="rgba(79,195,209,.08)" stroke-width="1"/>
+</svg>
+
+<div class="rotate-hint">
+  <svg viewBox="0 0 24 24" fill="none" stroke="#4FC3D1" stroke-width="1.6"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M12 18h.01"/></svg>
+  <h2>Turn your phone sideways 📱↻</h2>
+  <p>My H2O Footprint flows best in landscape. Rotate your device to continue.</p>
+</div>
+
+<div class="app-shell">
+
+  <div class="pot-zone">
+    <div class="brand">
+      <svg class="brand-drop" viewBox="0 0 24 24"><path d="M12 2C12 2 5 11 5 16a7 7 0 0 0 14 0C19 11 12 2 12 2Z" fill="#4FC3D1"/></svg>
+      <span class="brand-name">My H2O Footprint</span>
+    </div>
+    <svg class="pot-svg" viewBox="0 0 80 96">
+      <defs>
+        <clipPath id="potClip">
+          <path d="M22 8 H58 V20 C58 20 70 34 70 56 C70 78 56 90 40 90 C24 90 10 78 10 56 C10 34 22 20 22 20 Z"/>
+        </clipPath>
+      </defs>
+      <path class="pot-body-outline" d="M22 8 H58 V20 C58 20 70 34 70 56 C70 78 56 90 40 90 C24 90 10 78 10 56 C10 34 22 20 22 20 Z"/>
+      <rect x="20" y="4" width="40" height="7" rx="3" fill="none" class="pot-body-outline"/>
+      <g clip-path="url(#potClip)">
+        <rect id="waterLevel" x="0" y="96" width="80" height="0" class="wave-fill"/>
+        <circle class="grain-dot" cx="30" cy="70" r="1.6"/>
+        <circle class="grain-dot" cx="46" cy="60" r="1.3"/>
+        <circle class="grain-dot" cx="38" cy="80" r="1.5"/>
+        <circle class="grain-dot" cx="52" cy="74" r="1.2"/>
+        <circle class="grain-dot" cx="26" cy="58" r="1.1"/>
+      </g>
+    </svg>
+    <div class="progress-label" id="progressLabel">STEP 1 / 16</div>
+    <div class="progress-dots" id="progressDots"></div>
+  </div>
+
+  <div id="stage"></div>
+</div>
+
+<div class="nav">
+  <div class="nav-inner" id="navInner"></div>
+</div>
+
+<script>
+/* ============ ICONS ============ */
+const ICONS = {
+  drop: `<path d="M12 2C12 2 5 11 5 16a7 7 0 0 0 14 0C19 11 12 2 12 2Z" stroke-width="1.6" stroke="currentColor"/>`,
+  shower: `<path d="M4 12h13M6 12V8a4 4 0 0 1 8 0M8 16v1M11 16v1M14 16v1M8 19v1M11 19v1M14 19v1" stroke-linecap="round"/>`,
+  toilet: `<path d="M6 4h9v6a4.5 4.5 0 0 1-4.5 4.5A4.5 4.5 0 0 1 6 10V4Z"/><path d="M8 14.5V17a2 2 0 0 0 2 2h5a2 2 0 0 0 2-2v-2M6 8h9"/>`,
+  washer: `<rect x="4" y="3" width="16" height="18" rx="2"/><circle cx="12" cy="13" r="5"/><circle cx="7" cy="6" r="1"/>`,
+  sink: `<path d="M3 10h18M5 10v6a3 3 0 0 0 3 3h8a3 3 0 0 0 3-3v-6M12 10V5M12 5c0-1 1-2 2-2"/>`,
+  broom: `<path d="M14 3 6 20M5 20h6M9 15l7-9 3 2-8 9-4 1 2-3Z"/>`,
+  leak: `<path d="M12 2s5 6.5 5 10.5A5 5 0 0 1 7 12.5C7 8.5 12 2 12 2Z"/><path d="M12 21v-3"/>`,
+  shirt: `<path d="M8 3 4 6l2 3 2-1v11h8V8l2 1 2-3-4-3-2 2h-4L8 3Z"/>`,
+  plug: `<path d="M9 3v5M15 3v5M6 8h12v4a6 6 0 0 1-12 0V8ZM12 18v3"/>`,
+  wifi: `<path d="M3 8.5a15 15 0 0 1 18 0M6.5 12a10 10 0 0 1 11 0M10 15.5a5 5 0 0 1 4 0"/><circle cx="12" cy="19" r="1" fill="currentColor" stroke="none"/>`,
+  food: `<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>`,
+  globe: `<circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>`,
+  leaf: `<path d="M12 2c-1 0-2 1-2 2v8c0 1 1 2 2 2s2-1 2-2V4c0-1-1-2-2-2zm-4 6c-.5 0-1 .5-1 1 0 3 2 6 4 7.5 2-1.5 4-4.5 4-7.5 0-.5-.5-1-1-1h-6z"/>`,
+  water_drop: `<path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.32 0z"/>`,
+};
+function icon(name){ return `<svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">${ICONS[name]}</svg>`; }
+function checkIcon(){
+  return '<svg viewBox="0 0 24 24" fill="none"><path d="M4 12.5L9.5 18L20 6" stroke="#062026" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+}
+
+/* ============ IMAGES AS SVG (original, colorful, face-free flat illustrations) ============ */
+/* Shared gradient/def library injected once, reused by every illustration below */
+const IMG_DEFS = `
+  <linearGradient id="gWater" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#6FE0EC"/><stop offset="100%" stop-color="#1F7B8C"/></linearGradient>
+  <linearGradient id="gClay" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#F4B27C"/><stop offset="100%" stop-color="#A85B2C"/></linearGradient>
+  <linearGradient id="gGreen" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#8CF0B8"/><stop offset="100%" stop-color="#2FA968"/></linearGradient>
+  <linearGradient id="gYellow" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FCE28C"/><stop offset="100%" stop-color="#E8B93A"/></linearGradient>
+  <linearGradient id="gPink" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FFA6C4"/><stop offset="100%" stop-color="#E85E8A"/></linearGradient>
+  <linearGradient id="gPurple" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#C3AEF7"/><stop offset="100%" stop-color="#7C5CD6"/></linearGradient>
+  <linearGradient id="gRed" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FF9B9B"/><stop offset="100%" stop-color="#D6413F"/></linearGradient>
+  <linearGradient id="gSteel" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#B9C7D6"/><stop offset="100%" stop-color="#5C7183"/></linearGradient>
+`;
+function imgWrap(viewBox, inner){
+  return `<svg class="inline-image" viewBox="${viewBox}" xmlns="http://www.w3.org/2000/svg"><defs>${IMG_DEFS}</defs>${inner}</svg>`;
+}
+
+/* Intro — a small colorful world with an orbiting droplet cycle */
+function introImage(){
+  return imgWrap("0 0 200 150", `
+    <ellipse cx="100" cy="128" rx="76" ry="12" fill="#000" opacity="0.18"/>
+    <circle cx="100" cy="75" r="52" fill="url(#gWater)"/>
+    <path d="M60 60 Q100 40 140 60 Q120 78 100 62 Q80 78 60 60Z" fill="url(#gGreen)" opacity="0.85"/>
+    <path d="M55 95 Q90 108 118 92 Q140 100 148 84" fill="none" stroke="#EAF9FB" stroke-width="3" stroke-linecap="round" opacity="0.6"/>
+    <circle cx="40" cy="38" r="9" fill="url(#gYellow)"/>
+    <circle cx="164" cy="52" r="6" fill="url(#gPink)"/>
+    <circle cx="150" cy="112" r="7" fill="url(#gPurple)"/>
+    <path d="M100 18c0 0-9 11-9 17a9 9 0 0 0 18 0c0-6-9-17-9-17Z" fill="url(#gWater)" stroke="#fff" stroke-width="1.5"/>
+  `);
+}
+
+/* Family — colorful stacked house icons, no people, representing household size */
+function familyImage(){
+  return imgWrap("0 0 200 150", `
+    <ellipse cx="100" cy="132" rx="86" ry="10" fill="#000" opacity="0.15"/>
+    <g>
+      <path d="M40 100 V70 L64 52 L88 70 V100 Z" fill="url(#gClay)"/>
+      <rect x="52" y="80" width="12" height="20" fill="#5A3418" opacity="0.5"/>
+      <path d="M60 80h8v8h-8z" fill="#FCE8CF"/>
+    </g>
+    <g>
+      <path d="M78 108 V66 L112 42 L146 66 V108 Z" fill="url(#gWater)"/>
+      <rect x="95" y="86" width="16" height="22" fill="#0E3A44" opacity="0.4"/>
+      <path d="M120 84h10v10h-10z" fill="#EAF9FB"/>
+      <path d="M112 42c0 0-8 9-8 14a8 8 0 0 0 16 0c0-5-8-14-8-14Z" fill="url(#gYellow)" stroke="#fff" stroke-width="1.5"/>
+    </g>
+    <g>
+      <path d="M132 100 V72 L154 56 L176 72 V100 Z" fill="url(#gGreen)"/>
+      <rect x="142" y="82" width="10" height="18" fill="#0F5B36" opacity="0.5"/>
+      <path d="M160 82h8v8h-8z" fill="#EAF9FB"/>
+    </g>
+  `);
+}
+
+/* Bathing — a rainbow-droplet shower over a bucket, replaces old outline version */
+function showerImage(){
+  return imgWrap("0 0 200 170", `
+    <ellipse cx="100" cy="152" rx="70" ry="12" fill="#000" opacity="0.15"/>
+    <rect x="70" y="18" width="60" height="14" rx="7" fill="url(#gSteel)"/>
+    <rect x="94" y="30" width="12" height="14" fill="url(#gSteel)"/>
+    <circle cx="100" cy="52" r="26" fill="url(#gWater)"/>
+    <g fill="#EAF9FB" opacity="0.85">
+      <circle cx="88" cy="52" r="2.4"/><circle cx="100" cy="48" r="2.4"/><circle cx="112" cy="52" r="2.4"/>
+      <circle cx="94" cy="60" r="2.4"/><circle cx="106" cy="60" r="2.4"/>
+    </g>
+    <g stroke-linecap="round" stroke-width="3">
+      <path d="M78 84 Q75 96 78 106" stroke="url(#gWater)" fill="none"/>
+      <path d="M100 84 Q97 100 100 114" stroke="url(#gPurple)" fill="none"/>
+      <path d="M122 84 Q125 96 122 106" stroke="url(#gPink)" fill="none"/>
+    </g>
+    <path d="M40 118 h40 l-5 34 a10 10 0 0 1-10 8 h-10 a10 10 0 0 1-10-8 Z" fill="url(#gClay)"/>
+    <ellipse cx="60" cy="118" rx="20" ry="5" fill="#F4B27C"/>
+    <path d="M45 122 Q60 132 75 122" fill="none" stroke="#6FE0EC" stroke-width="3" stroke-linecap="round"/>
+  `);
+}
+
+/* Toilet — colorful dual-flush fixture with sparkle water saving cue */
+function toiletImage(){
+  return imgWrap("0 0 200 170", `
+    <ellipse cx="100" cy="150" rx="70" ry="12" fill="#000" opacity="0.15"/>
+    <rect x="72" y="22" width="56" height="46" rx="8" fill="url(#gWater)"/>
+    <rect x="82" y="32" width="16" height="10" rx="3" fill="#EAF9FB" opacity="0.9"/>
+    <rect x="102" y="32" width="10" height="10" rx="3" fill="#EAF9FB" opacity="0.6"/>
+    <path d="M62 68 h76 v14 a38 38 0 0 1-38 38 a38 38 0 0 1-38-38 Z" fill="url(#gSteel)"/>
+    <ellipse cx="100" cy="82" rx="26" ry="10" fill="#0E3A44" opacity="0.35"/>
+    <g fill="url(#gYellow)">
+      <path d="M148 40c0 0-6 7-6 11a6 6 0 0 0 12 0c0-4-6-11-6-11Z"/>
+      <path d="M164 60c0 0-4 5-4 8a4 4 0 0 0 8 0c0-3-4-8-4-8Z"/>
+    </g>
+  `);
+}
+
+/* Laundry — washing machine porthole with tumbling colorful clothes & bubbles */
+function laundryImage(){
+  return imgWrap("0 0 200 170", `
+    <ellipse cx="100" cy="152" rx="72" ry="12" fill="#000" opacity="0.15"/>
+    <rect x="46" y="22" width="108" height="118" rx="14" fill="url(#gSteel)"/>
+    <rect x="58" y="32" width="84" height="10" rx="4" fill="#EAF9FB" opacity="0.5"/>
+    <circle cx="100" cy="90" r="42" fill="#0E3A44" opacity="0.55"/>
+    <circle cx="100" cy="90" r="34" fill="url(#gWater)" opacity="0.9"/>
+    <path d="M78 78 q10 -14 22 0 q10 14 22 0" fill="none" stroke="#EAF9FB" stroke-width="3" stroke-linecap="round" opacity="0.7"/>
+    <rect x="82" y="88" width="16" height="12" rx="4" fill="url(#gPink)" transform="rotate(18 90 94)"/>
+    <rect x="100" y="96" width="18" height="12" rx="4" fill="url(#gYellow)" transform="rotate(-12 109 102)"/>
+    <circle cx="88" cy="108" r="5" fill="#fff" opacity="0.7"/>
+    <circle cx="122" cy="70" r="3.5" fill="#fff" opacity="0.6"/>
+    <circle cx="128" cy="44" r="4" fill="url(#gGreen)"/>
+    <circle cx="140" cy="52" r="3" fill="url(#gPurple)"/>
+  `);
+}
+
+/* Kitchen — sink with tap, dish and a glass of drinking water */
+function kitchenImage(){
+  return imgWrap("0 0 200 170", `
+    <ellipse cx="100" cy="150" rx="74" ry="12" fill="#000" opacity="0.15"/>
+    <path d="M40 70 h120 v14 a14 14 0 0 1-14 14 H54 a14 14 0 0 1-14-14 Z" fill="url(#gSteel)"/>
+    <rect x="94" y="34" width="10" height="30" rx="4" fill="url(#gSteel)"/>
+    <path d="M94 40 q-24 0-24 22" fill="none" stroke="url(#gSteel)" stroke-width="9" stroke-linecap="round"/>
+    <path d="M70 62 q0 10 5 16" fill="none" stroke="url(#gWater)" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="75" cy="86" r="3" fill="url(#gWater)"/>
+    <ellipse cx="62" cy="92" rx="18" ry="7" fill="#EAF9FB"/>
+    <ellipse cx="62" cy="92" rx="18" ry="7" fill="none" stroke="url(#gGreen)" stroke-width="3"/>
+    <path d="M132 84 h20 l-4 34 a6 6 0 0 1-6 5 h-0 a6 6 0 0 1-6-5 Z" fill="url(#gPurple)"/>
+    <rect x="130" y="78" width="24" height="8" rx="3" fill="url(#gPink)"/>
+  `);
+}
+
+/* Cleaning & outdoor — broom, garden pot and a car sponge, colorful trio */
+function cleaningImage(){
+  return imgWrap("0 0 200 170", `
+    <ellipse cx="100" cy="152" rx="76" ry="12" fill="#000" opacity="0.15"/>
+    <g>
+      <path d="M46 40 L74 96" stroke="url(#gClay)" stroke-width="7" stroke-linecap="round"/>
+      <path d="M30 128 L54 100 L74 96 L58 122 Z" fill="url(#gYellow)"/>
+    </g>
+    <g>
+      <path d="M110 130 v-30 a20 14 0 0 1 40 0 v30 Z" fill="url(#gClay)"/>
+      <path d="M118 100 q12 -22 24 0" fill="none" stroke="url(#gGreen)" stroke-width="5" stroke-linecap="round"/>
+      <circle cx="130" cy="70" r="6" fill="url(#gGreen)"/>
+      <circle cx="118" cy="80" r="5" fill="url(#gGreen)"/>
+      <circle cx="142" cy="80" r="5" fill="url(#gGreen)"/>
+    </g>
+    <g>
+      <ellipse cx="90" cy="140" rx="16" ry="10" fill="url(#gPink)"/>
+      <path d="M78 140 q12 -18 24 0" fill="none" stroke="#fff" stroke-width="2" opacity="0.6"/>
+      <circle cx="86" cy="150" r="3" fill="url(#gWater)"/><circle cx="96" cy="152" r="2.4" fill="url(#gWater)"/>
+    </g>
+  `);
+}
+
+/* Leaks — dripping tap with an alert burst, red/orange warning tones */
+function leaksImage(){
+  return imgWrap("0 0 200 170", `
+    <ellipse cx="100" cy="150" rx="70" ry="12" fill="#000" opacity="0.15"/>
+    <rect x="86" y="24" width="28" height="40" rx="6" fill="url(#gSteel)"/>
+    <rect x="70" y="30" width="60" height="12" rx="6" fill="url(#gSteel)"/>
+    <circle cx="70" cy="36" r="8" fill="url(#gRed)"/>
+    <path d="M100 64 q0 10 -3 16" fill="none" stroke="url(#gWater)" stroke-width="4" stroke-linecap="round"/>
+    <path d="M97 92c0 0-8 9-8 14a8 8 0 0 0 16 0c0-5-8-14-8-14Z" fill="url(#gWater)" stroke="#EAF9FB" stroke-width="1.5"/>
+    <path d="M97 124c0 0-5 6-5 9a5 5 0 0 0 10 0c0-3-5-9-5-9Z" fill="url(#gWater)" opacity="0.8"/>
+    <g stroke="url(#gRed)" stroke-width="4" stroke-linecap="round">
+      <path d="M150 40 l10 -10"/><path d="M152 54 h14"/><path d="M150 68 l10 10"/>
+    </g>
+  `);
+}
+
+/* Diet — colorful plate with grain, veg and dairy, hidden-water food theme */
+function dietImage(){
+  return imgWrap("0 0 200 170", `
+    <ellipse cx="100" cy="152" rx="78" ry="12" fill="#000" opacity="0.15"/>
+    <circle cx="100" cy="92" r="58" fill="url(#gSteel)" opacity="0.35"/>
+    <circle cx="100" cy="92" r="46" fill="#EAF9FB"/>
+    <path d="M64 100 q36 -30 72 0 q-8 22 -36 22 q-28 0 -36 -22Z" fill="url(#gGreen)"/>
+    <circle cx="80" cy="76" r="10" fill="url(#gClay)"/>
+    <circle cx="120" cy="72" r="8" fill="url(#gYellow)"/>
+    <rect x="108" y="106" width="22" height="14" rx="4" fill="url(#gPurple)"/>
+    <path d="M100 30c0 0-8 9-8 14a8 8 0 0 0 16 0c0-5-8-14-8-14Z" fill="url(#gWater)" stroke="#fff" stroke-width="1.5"/>
+  `);
+}
+
+/* Clothing — hanger with a colorful tee and jeans, water-drop tag for virtual water */
+function clothImage(){
+  return imgWrap("0 0 200 170", `
+    <ellipse cx="100" cy="152" rx="72" ry="12" fill="#000" opacity="0.15"/>
+    <path d="M100 26 v10" stroke="url(#gSteel)" stroke-width="3"/>
+    <path d="M70 46 L100 30 L130 46" fill="none" stroke="url(#gSteel)" stroke-width="4" stroke-linecap="round"/>
+    <path d="M66 50 L100 36 L134 50 L146 66 L128 78 L118 68 V116 H82 V68 L72 78 L54 66 Z" fill="url(#gPink)"/>
+    <rect x="82" y="60" width="36" height="8" fill="#fff" opacity="0.3"/>
+    <path d="M84 122 h32 l6 26 a6 6 0 0 1-6 7 h-8 l-4 -14 l-4 14 h-8 a6 6 0 0 1-6-7 Z" fill="url(#gPurple)"/>
+    <path d="M152 60c0 0-8 9-8 14a8 8 0 0 0 16 0c0-5-8-14-8-14Z" fill="url(#gWater)" stroke="#fff" stroke-width="1.5"/>
+  `);
+}
+
+/* Electricity — AC unit + plug with cooling-water droplets behind power use */
+function electricityImage(){
+  return imgWrap("0 0 200 170", `
+    <ellipse cx="100" cy="150" rx="76" ry="12" fill="#000" opacity="0.15"/>
+    <rect x="46" y="50" width="108" height="40" rx="10" fill="url(#gSteel)"/>
+    <rect x="58" y="62" width="18" height="16" rx="3" fill="#EAF9FB" opacity="0.7"/>
+    <rect x="84" y="62" width="18" height="16" rx="3" fill="#EAF9FB" opacity="0.5"/>
+    <path d="M118 66 l10 6 l-10 6 z" fill="url(#gGreen)"/>
+    <g stroke="url(#gWater)" stroke-width="3" stroke-linecap="round" opacity="0.85">
+      <path d="M70 96 q-4 10 0 18"/><path d="M100 96 q-4 12 0 20"/><path d="M130 96 q-4 10 0 18"/>
+    </g>
+    <path d="M112 118 L96 140 h12 l-8 20 l24 -26 h-12 Z" fill="url(#gYellow)"/>
+  `);
+}
+
+/* Digital — cloud server stack with wifi + cooling droplets for data centers */
+function digitalImage(){
+  return imgWrap("0 0 200 170", `
+    <ellipse cx="100" cy="150" rx="76" ry="12" fill="#000" opacity="0.15"/>
+    <path d="M60 78 a22 22 0 0 1 42 -10 a18 18 0 0 1 6 35 H66 a18 18 0 0 1 -6 -25Z" fill="url(#gPurple)"/>
+    <rect x="72" y="98" width="56" height="14" rx="4" fill="url(#gSteel)"/>
+    <rect x="72" y="116" width="56" height="14" rx="4" fill="url(#gSteel)"/>
+    <circle cx="80" cy="105" r="2.4" fill="url(#gGreen)"/><circle cx="80" cy="123" r="2.4" fill="url(#gYellow)"/>
+    <path d="M136 92 a18 18 0 0 1 26 0" fill="none" stroke="url(#gWater)" stroke-width="3" stroke-linecap="round"/>
+    <path d="M142 100 a10 10 0 0 1 14 0" fill="none" stroke="url(#gWater)" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="149" cy="108" r="2.5" fill="url(#gWater)"/>
+    <path d="M148 128c0 0-6 7-6 11a6 6 0 0 0 12 0c0-4-6-11-6-11Z" fill="url(#gWater)" stroke="#fff" stroke-width="1.5"/>
+  `);
+}
+
+/* India context — abstract, colorful map silhouette with a highlighted water droplet */
+function indiaImage(){
+  return imgWrap("0 0 200 200", `
+    <ellipse cx="100" cy="176" rx="66" ry="10" fill="#000" opacity="0.12"/>
+    <path d="M92 20 L128 32 L138 58 L150 66 L146 84 L132 96 L136 118 L118 140 L120 160 L100 176 L86 156 L64 148 L58 122 L44 110 L52 84 L46 62 L66 48 L72 30 Z"
+      fill="url(#gGreen)" stroke="#0F5B36" stroke-width="1.5" opacity="0.92"/>
+    <circle cx="100" cy="98" r="18" fill="url(#gWater)" opacity="0.9"/>
+    <path d="M100 60c0 0-13 16-13 24a13 13 0 0 0 26 0c0-8-13-24-13-24Z" fill="url(#gWater)" stroke="#fff" stroke-width="2"/>
+    <circle cx="60" cy="70" r="4" fill="url(#gYellow)"/>
+    <circle cx="146" cy="120" r="4" fill="url(#gPink)"/>
+  `);
+}
+
+/* India daily target — colorful chain of droplets sized by category */
+function dropletChain(){
+  return imgWrap("0 0 200 110", `
+    <g stroke="url(#gWater)" stroke-width="2" opacity="0.5">
+      <line x1="26" y1="46" x2="52" y2="46"/><line x1="76" y1="46" x2="102" y2="46"/><line x1="126" y1="46" x2="152" y2="46"/>
+    </g>
+    <path d="M26 30c0 0-10 12-10 18a10 10 0 0 0 20 0c0-6-10-18-10-18Z" fill="url(#gWater)"/>
+    <path d="M76 26c0 0-12 14-12 21a12 12 0 0 0 24 0c0-7-12-21-12-21Z" fill="url(#gGreen)"/>
+    <path d="M126 32c0 0-9 11-9 16a9 9 0 0 0 18 0c0-5-9-16-9-16Z" fill="url(#gPink)"/>
+    <path d="M170 36c0 0-7 8-7 12a7 7 0 0 0 14 0c0-4-7-12-7-12Z" fill="url(#gYellow)"/>
+    <text x="26" y="80" font-size="10" text-anchor="middle" fill="#F5ECDD">Direct</text>
+    <text x="76" y="80" font-size="10" text-anchor="middle" fill="#F5ECDD">Food</text>
+    <text x="126" y="80" font-size="10" text-anchor="middle" fill="#F5ECDD">Clothing</text>
+    <text x="170" y="80" font-size="10" text-anchor="middle" fill="#F5ECDD">Energy</text>
+  `);
+}
+
+/* Results — a small celebratory trophy with drop confetti, no faces */
+function resultsImage(){
+  return imgWrap("0 0 200 150", `
+    <ellipse cx="100" cy="130" rx="60" ry="10" fill="#000" opacity="0.15"/>
+    <rect x="86" y="96" width="28" height="26" fill="url(#gSteel)"/>
+    <rect x="72" y="118" width="56" height="10" rx="3" fill="url(#gSteel)"/>
+    <path d="M78 44h44v34a22 22 0 0 1-44 0Z" fill="url(#gYellow)"/>
+    <path d="M78 50 q-20 0-16 20 q3 14 20 12" fill="none" stroke="url(#gYellow)" stroke-width="6" stroke-linecap="round"/>
+    <path d="M122 50 q20 0 16 20 q-3 14-20 12" fill="none" stroke="url(#gYellow)" stroke-width="6" stroke-linecap="round"/>
+    <circle cx="100" cy="60" r="12" fill="#fff" opacity="0.4"/>
+    <circle cx="46" cy="34" r="5" fill="url(#gPink)"/><circle cx="156" cy="30" r="6" fill="url(#gPurple)"/>
+    <circle cx="164" cy="60" r="4" fill="url(#gGreen)"/><circle cx="34" cy="66" r="4" fill="url(#gWater)"/>
+  `);
+}
+
+/* ============ DATA ============ */
+function withZero(options, zeroLabel){
+  const hasZero = options.some(o => o.value === 0);
+  if(hasZero) return options;
+  return [...options, {label: zeroLabel || "No — I don't use water here", emoji:"🚫", value:0, zero:true}];
+}
+
+const SCREENS = [
+  { id:"intro", type:"intro" },
+  { id:"family", type:"family" },
+
+  { id:"bathing", type:"question", theme:"A", part:"What You Touch", icon:"shower",
+    title:"Bathing & brushing up",
+    subtitle:"The water you feel on your skin, first thing every day.",
+    image:showerImage,
+    parts:[
+      { q:"How do you usually bathe?", options: withZero([
+          {label:"Bucket & mug", emoji:"🪣", value:18},
+          {label:"Shower, under 5 min", emoji:"🚿", value:55},
+          {label:"Shower, 5–15 min", emoji:"🚿", value:90},
+          {label:"Shower 15+ min / bathtub", emoji:"🛁", value:160},
+        ], "Someone else handles this for me")},
+      { q:"Tap running while you brush your teeth or shave?", options: withZero([
+          {label:"No, I turn it off", emoji:"🚫", value:0},
+          {label:"Yes, sometimes", emoji:"🤔", value:4},
+          {label:"Yes, most of the time", emoji:"😅", value:8},
+        ])},
+    ]},
+
+  { id:"toilet", type:"question", theme:"A", part:"What You Touch", icon:"toilet",
+    title:"Toilet use",
+    subtitle:"Dual-flush toilets save ~17L per flush vs traditional models. India standard: 6-9L.",
+    image:toiletImage,
+    parts:[
+      { q:"What kind of flush do you have?", options: withZero([
+          {label:"Dual-flush, low volume", emoji:"♻️", value:18},
+          {label:"Standard single flush", emoji:"🔘", value:35},
+          {label:"Old-style, high-flush cistern", emoji:"🏚️", value:55},
+        ], "Not applicable to me")},
+    ]},
+
+  { id:"laundry", type:"question", theme:"A", part:"What You Touch", icon:"washer",
+    title:"Laundry day",
+    subtitle:"Hand washing uses 12L vs machine wash 25-65L. One load daily = 18-24L per person.",
+    image:laundryImage,
+    parts:[
+      { q:"How do you wash clothes?", options: withZero([
+          {label:"Hand wash", emoji:"🧼", value:12},
+          {label:"Machine — full loads only", emoji:"🌀", value:25},
+          {label:"Machine — frequent small loads", emoji:"🔄", value:45},
+          {label:"Machine — small loads, almost daily", emoji:"📅", value:65},
+        ], "Someone else does my laundry")},
+    ]},
+
+  { id:"kitchen", type:"question", theme:"A", part:"What You Touch", icon:"sink",
+    title:"Kitchen & drinking water",
+    subtitle:"Basin washing: 10L vs tap running: 30L. RO purifiers waste 3-4L for 1L clean water.",
+    image:kitchenImage,
+    parts:[
+      { q:"How do you wash dishes?", options: withZero([
+          {label:"Fill a basin", emoji:"🥣", value:10},
+          {label:"Mix of basin & tap", emoji:"🚰", value:17},
+          {label:"Tap running continuously", emoji:"💦", value:30},
+          {label:"Dishwasher / tap left on throughout", emoji:"🤖", value:45},
+        ], "I don't wash dishes")},
+      { q:"Drinking water & cooking rinses, per day?", options: withZero([
+          {label:"Few glasses, minimal rinsing", emoji:"🥛", value:6},
+          {label:"Typical — 6–8 glasses", emoji:"🫗", value:9},
+          {label:"Multiple rinse cycles (rice, veg)", emoji:"🍚", value:13},
+          {label:"RO purifier reject water counted", emoji:"🧪", value:20},
+        ])},
+    ]},
+
+  { id:"cleaningOutdoor", type:"question", theme:"A", part:"What You Touch", icon:"broom",
+    title:"Cleaning, garden & vehicle",
+    subtitle:"Bucket mopping: 4L vs hose-down: 15-25L. Garden watering is a major use.",
+    image:cleaningImage,
+    parts:[
+      { q:"How do you clean floors at home?", options: withZero([
+          {label:"Bucket mopping", emoji:"🪣", value:4},
+          {label:"Mixed methods", emoji:"🧽", value:8},
+          {label:"Hose-down cleaning", emoji:"🚿", value:15},
+          {label:"Daily hosing of large areas", emoji:"🏞️", value:25},
+        ], "Someone else cleans")},
+      { q:"Garden or potted plants?", options: withZero([
+          {label:"Few pots, can / drip", emoji:"🪴", value:8},
+          {label:"Moderate garden, hose", emoji:"🌿", value:20},
+          {label:"Large lawn, daily hose, no timer", emoji:"🌳", value:70},
+        ], "No garden or plants")},
+      { q:"Vehicle washing?", options: withZero([
+          {label:"Bucket, two-wheeler", emoji:"🛵", value:17},
+          {label:"Bucket, car", emoji:"🚙", value:50},
+          {label:"Hose, unregulated / daily", emoji:"🚿", value:160},
+        ], "No vehicle to wash")},
+    ]},
+
+  { id:"leaks", type:"question", theme:"A", part:"What You Touch", icon:"leak",
+    title:"Leaks & silent wastage",
+    subtitle:"A dripping tap wastes ~5-20L/day. A running flush: ~25-40L/day. Critical to check!",
+    image:leaksImage,
+    parts:[
+      { q:"Select anything happening at home right now:", multi:true, options:[
+          {label:"Dripping tap", emoji:"💧", value:12},
+          {label:"Leaking pipe joint", emoji:"🔧", value:15},
+          {label:"Faulty / running flush cistern", emoji:"🚽", value:25},
+          {label:"None of these — all good", emoji:"✅", value:0, exclusive:true},
+        ]},
+    ]},
+
+  { id:"diet", type:"question", theme:"B", part:"Hidden Water", icon:"food",
+    title:"Food & diet",
+    subtitle:"Beef: 15,000L/kg • Rice: 2,400L/kg • Wheat: 1,300L/kg • Vegetables: 500-1,000L/kg",
+    image:dietImage,
+    parts:[
+      { q:"How often do you eat meat (chicken, beef, lamb)?", options: withZero([
+          {label:"Rarely or vegetarian", emoji:"🥗", value:80},
+          {label:"1-2 times per week", emoji:"🍗", value:180},
+          {label:"3-5 times per week", emoji:"🥩", value:320},
+          {label:"Daily or almost daily", emoji:"🍖", value:480},
+        ], "Vegan - no animal products")},
+      { q:"Dairy consumption (milk, yogurt, cheese)?", options: withZero([
+          {label:"Minimal or none", emoji:"🥛", value:40},
+          {label:"1-2 servings per day", emoji:"🧈", value:140},
+          {label:"Multiple servings daily", emoji:"🧀", value:280},
+        ])},
+    ]},
+
+  { id:"clothing", type:"question", theme:"B", part:"Hidden Water", icon:"shirt",
+    title:"Clothing & textiles",
+    subtitle:"Cotton t-shirt: 2,700L • Jeans: 7,500-10,000L • 1 pair shoes: 8,000L (leather)",
+    image:clothImage,
+    parts:[
+      { q:"How often do you buy new clothing (all types)?", options: withZero([
+          {label:"Rarely — under 2 items/month", emoji:"🧵", value:120},
+          {label:"Moderate shopper — 2-4 items/month", emoji:"👕", value:280},
+          {label:"Frequent fast-fashion buyer", emoji:"🛍️", value:600},
+          {label:"Very frequent purchases", emoji:"🛒", value:1000},
+        ], "I rarely buy new clothes")},
+    ]},
+
+  { id:"electricity", type:"question", theme:"B", part:"Hidden Water", icon:"plug",
+    title:"Electricity & energy",
+    subtitle:"Power plants use 300-500L of water per 1 kWh for cooling. AC is the biggest consumer.",
+    image:electricityImage,
+    parts:[
+      { q:"How much AC / appliance use per day?", options: withZero([
+          {label:"Low usage, minimal AC", emoji:"🌤️", value:30},
+          {label:"Moderate AC / appliance use", emoji:"❄️", value:80},
+          {label:"Heavy AC, multiple appliances", emoji:"🔌", value:200},
+          {label:"AC running most of the day", emoji:"🥵", value:350},
+        ], "No AC / minimal appliance use")},
+    ]},
+
+  { id:"digital", type:"question", theme:"B", part:"Hidden Water", icon:"wifi",
+    title:"Digital & tech use",
+    subtitle:"Data centers drink water to cool servers. YouTube HD: ~0.3L per hour. AI training: massive.",
+    image:digitalImage,
+    parts:[
+      { q:"Daily streaming, cloud & AI tool use?", options: withZero([
+          {label:"Light — minimal streaming", emoji:"📴", value:2},
+          {label:"Moderate streaming / cloud use", emoji:"📺", value:6},
+          {label:"Heavy streaming + frequent AI tools", emoji:"🤖", value:12},
+          {label:"Constant HD streaming + heavy AI/cloud", emoji:"🔥", value:22},
+        ], "Barely online")},
+    ]},
+
+  { id:"india-context", type:"info-slide", theme:"C",
+    title:"India's Water Situation",
+    subtitle:"Understanding the context", 
+    image:indiaImage,
+    content:`
+      <div class="info-box alert">
+        <strong>⚠️ Critical Facts:</strong> India has 18% of world's population but only 4% of fresh water. Ranks 120 out of 122 nations for water quality, 133 out of 180 for availability.
+      </div>
+      <div class="comparison-card">
+        <div class="comparison-card-label">Urban Domestic Standard</div>
+        <div class="comparison-card-value">135 L/day</div>
+      </div>
+      <div class="comparison-card">
+        <div class="comparison-card-label">Rural Domestic Standard</div>
+        <div class="comparison-card-value">55 L/day</div>
+      </div>
+      <div class="comparison-card">
+        <div class="comparison-card-label">Minimum for Health (WHO)</div>
+        <div class="comparison-card-value">50-100 L/day</div>
+      </div>
+      <div class="info-box note">
+        <strong>📊 Global Context:</strong> India's total water footprint is 1,182 cu. km/year (largest globally with China & US). Agriculture accounts for 92% of this, followed by industry & domestic.
+      </div>
+    `
+  },
+
+  { id:"india-daily", type:"info-slide", theme:"C",
+    title:"What Should You Use Daily?",
+    subtitle:"India's recommendation", 
+    image:dropletChain,
+    content:`
+      <div class="comparison-card">
+        <div class="comparison-card-label">✅ Efficient & Sustainable</div>
+        <div class="comparison-card-value">50-80 L/day</div>
+      </div>
+      <div class="comparison-card">
+        <div class="comparison-card-label">📊 Average (Urban)</div>
+        <div class="comparison-card-value">135 L/day</div>
+      </div>
+      <div class="comparison-card">
+        <div class="comparison-card-label">⚠️ High (Wasteful)</div>
+        <div class="comparison-card-value">200+ L/day</div>
+      </div>
+      <div class="info-box">
+        <strong>Breakdown of 135L standard:</strong><br>
+        🚽 Toilet: 45L | 🛁 Bathing: 20L | 🧺 Laundry: 40L<br>
+        🚰 Kitchen: 7L | 🧹 Cleaning: 10L | 💧 Other: 13L
+      </div>
+      <div class="info-box note">
+        <strong>🌱 Goal for India:</strong> Reduce direct use to 100L/day while optimizing food & energy choices to cut virtual water consumption.
+      </div>
+    `
+  },
+
+  { id:"results", type:"results" },
+];
+
+/* ============ STATE ============ */
+let current = 0;
+const answers = {};
+let familySize = 1;
+
+const stage = document.getElementById("stage");
+const navInner = document.getElementById("navInner");
+const progressLabel = document.getElementById("progressLabel");
+const progressDots = document.getElementById("progressDots");
+const waterLevel = document.getElementById("waterLevel");
+
+/* ============ RENDER ============ */
+function render(){
+  const screen = SCREENS[current];
+  document.body.setAttribute("data-theme", screen.theme === "B" ? "B" : screen.theme === "C" ? "C" : "A");
+
+  const pct = current / (SCREENS.length - 1);
+  const fillH = 86 * pct;
+  waterLevel.setAttribute("y", 96 - fillH);
+  waterLevel.setAttribute("height", fillH);
+  progressLabel.textContent = `STEP ${current+1} / ${SCREENS.length}`;
+  progressDots.innerHTML = SCREENS.map((_,i)=>`<div class="pdot ${i<=current?'on':''}"></div>`).join("");
+
+  let html = "";
+  if(screen.type === "intro") html = renderIntro();
+  else if(screen.type === "family") html = renderFamily();
+  else if(screen.type === "question") html = renderQuestion(screen);
+  else if(screen.type === "info-slide") html = renderInfoSlide(screen);
+  else if(screen.type === "results") html = renderResults();
+
+  stage.innerHTML = `<div class="card">${html}</div>`;
+  renderNav(screen);
+  attachHandlers(screen);
+}
+
+function renderIntro(){
+  return `
+    ${introImage()}
+    <h1 class="title" style="text-align:center;">My H2O Footprint</h1>
+    <p class="intro-story" style="text-align:center;">Every shower, every load of laundry, every hour the lights stay on — quietly pulls from the same shrinking source. Some of that water you can see. Most of it, you never do.</p>
+    <p class="intro-story" style="text-align:center;">India faces critical water scarcity. This survey helps you understand your true impact and find real solutions.</p>
+    <p class="intro-story" style="text-align:center;"><em>About 5 minutes, all taps, no typing.</em></p>
+  `;
+}
+
+function renderFamily(){
+  const sizes = [1,2,3,4,5,"6+"];
+  return `
+    <div class="icon-badge">${icon('drop')}</div>
+    <div class="eyebrow"><span>Before we begin</span><span class="line"></span><span>🏠</span></div>
+    <h1 class="title">How many people share water in your home?</h1>
+    <p class="subtitle">We'll use this to show your household's total, alongside your own number.</p>
+    ${familyImage()}
+    <div class="options" style="grid-template-columns:repeat(3,1fr); display:grid; margin-top:16px;">
+      ${sizes.map(s=>`
+        <div class="option-tile fam-tile ${familySize==s?'selected':''}" data-size="${s}" style="justify-content:center;">
+          <div class="checkbox">${checkIcon()}</div>
+          <div class="opt-label" style="text-align:center; flex:none;">${s}</div>
+        </div>`).join("")}
+    </div>
+  `;
+}
+
+function bucketsOf(value){ return Math.round(value/15); }
+
+function comparisonFor(screenId, value){
+  if(value === 0) return `<span class="impact-placeholder">No extra water used here — nice. 🌟</span>`;
+  if(["bathing","toilet","laundry","kitchen","cleaningOutdoor","leaks"].includes(screenId)){
+    const b = bucketsOf(value);
+    return `≈ <b>${value} L</b> — about <b>${b > 0 ? b : "less than 1"}</b> ${b===1?"bucket":"buckets"} of water (15 L each) 🪣`;
+  }
+  if(screenId === "diet"){
+    const meals = Math.max(1, Math.round(value/150));
+    return `≈ <b>${value} L/day</b> of hidden water in your food — like <b>${meals}</b> beef burger(s) worth 🍔`;
+  }
+  if(screenId === "clothing"){
+    const shirts = Math.max(1, Math.round(value/90));
+    return `≈ <b>${value} L/day</b> of hidden water woven into fabric — roughly <b>${shirts}</b> t-shirt-equivalent(s), spread across the month 👕`;
+  }
+  if(screenId === "electricity"){
+    const kwh = Math.max(1, Math.round(value/2.8));
+    return `≈ <b>${value} L/day</b> — the cooling water behind about <b>${kwh} kWh</b> of electricity ⚡`;
+  }
+  if(screenId === "digital"){
+    return `≈ <b>${value} L/day</b> of cooling water quietly used by servers behind your streaming & AI use 📶`;
+  }
+  return `≈ <b>${value} L/day</b>`;
+}
+
+function renderQuestion(screen){
+  answers[screen.id] = answers[screen.id] || screen.parts.map(p => p.multi ? [] : null);
+  const partsHtml = screen.parts.map((p, pi) => {
+    const selected = answers[screen.id][pi];
+    const maxVal = Math.max(...p.options.map(o=>o.value), 1);
+
+    const optsHtml = p.options.map((opt, oi) => {
+      const isSel = p.multi
+        ? (Array.isArray(selected) && selected.includes(oi))
+        : selected === oi;
+      return `
+        <div class="option-tile ${isSel?'selected':''}" data-screen="${screen.id}" data-part="${pi}" data-opt="${oi}" data-multi="${p.multi?1:0}">
+          <div class="checkbox">${checkIcon()}</div>
+          <div class="opt-emoji">${opt.emoji}</div>
+          <div class="opt-label ${opt.zero?'opt-zero':''}">${opt.label}</div>
+        </div>`;
+    }).join("");
+
+    let markerPct = 0, impactHtml = `<span class="impact-placeholder">Pick an option to see your impact →</span>`;
+    if(!p.multi && selected !== null && selected !== undefined){
+      const val = p.options[selected].value;
+      markerPct = Math.min(100, (val/maxVal)*100);
+      impactHtml = comparisonFor(screen.id, val);
+    } else if(p.multi){
+      const val = (selected||[]).reduce((s,oi)=>s+p.options[oi].value,0);
+      const maxMulti = p.options.filter(o=>!o.exclusive).reduce((s,o)=>s+o.value,0) || 1;
+      markerPct = Math.min(100, (val/maxMulti)*100);
+      impactHtml = comparisonFor(screen.id, val);
+    }
+
+    return `
+      <div class="part-block">
+        <div class="q-label">${p.q}</div>
+        <div class="options">${optsHtml}</div>
+        <div class="gauge-wrap">
+          <div class="gauge-label"><span>Your impact gauge</span><span>💧→🔥</span></div>
+          <div class="gauge-track"><div class="gauge-marker" style="left:${markerPct}%;"></div></div>
+          <div class="gauge-ends"><span>Low use</span><span>High use</span></div>
+          <div class="impact-line">${impactHtml}</div>
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  const imageHtml = screen.image ? screen.image() : "";
+
+  return `
+    <div class="icon-badge">${icon(screen.icon)}</div>
+    <div class="eyebrow"><span>${screen.part}</span><span class="line"></span><span>${screen.id==='leaks'?'💧':'📊'}</span></div>
+    <h1 class="title">${screen.title}</h1>
+    <p class="subtitle">${screen.subtitle}</p>
+    ${imageHtml}
+    ${partsHtml}
+  `;
+}
+
+function renderInfoSlide(screen){
+  const imageHtml = screen.image ? screen.image() : "";
+  return `
+    <div class="icon-badge">${icon('globe')}</div>
+    <div class="eyebrow"><span>Context</span><span class="line"></span><span>🌍</span></div>
+    <h1 class="title">${screen.title}</h1>
+    <p class="subtitle">${screen.subtitle}</p>
+    ${imageHtml}
+    <div>${screen.content}</div>
+  `;
+}
+
+/* ============ SCORING ============ */
+function computeTotals(){
+  const directIds = ["bathing","toilet","laundry","kitchen","cleaningOutdoor","leaks"];
+  const lifestyleIds = ["diet","clothing","electricity","digital"];
+
+  function sumIds(ids){
+    let total = 0;
+    ids.forEach(id=>{
+      const screen = SCREENS.find(s=>s.id===id);
+      const ans = answers[id];
+      if(!ans) return;
+      screen.parts.forEach((p, pi)=>{
+        const sel = ans[pi];
+        if(p.multi){
+          if(Array.isArray(sel)) sel.forEach(oi => total += p.options[oi].value);
+        } else if(sel !== null && sel !== undefined){
+          total += p.options[sel].value;
+        }
+      });
+    });
+    return total;
+  }
+
+  const direct = sumIds(directIds);
+  const lifestyle = sumIds(lifestyleIds);
+  return {direct, lifestyle, perPerson: direct + lifestyle};
+}
+
+const SCORE_POINTS = [ [0,1],[120,2],[250,3],[380,4],[520,5],[700,6],[900,7],[1150,8],[1450,9],[1900,10] ];
+function scoreFromTotal(total){
+  if(total <= SCORE_POINTS[0][0]) return 1;
+  for(let i=1;i<SCORE_POINTS.length;i++){
+    const [v0,s0] = SCORE_POINTS[i-1];
+    const [v1,s1] = SCORE_POINTS[i];
+    if(total <= v1){
+      const frac = (total - v0)/(v1 - v0);
+      return s0 + frac*(s1-s0);
+    }
+  }
+  return 10;
+}
+function bandOf(score){
+  if(score <= 4) return 0;
+  if(score <= 8) return 1;
+  return 2;
+}
+const bandWord = ["In the green — efficient", "Average to high — room to improve", "Excessive — time to act"];
+const bandColorVar = ["var(--good)","var(--high)","var(--bad)"];
+
+function tipsFor(band, t){
+  const genericByBand = [
+    ["You're already in great shape — keep the habits that got you here, like short showers and full-load laundry.",
+     "A quick monthly leak-check keeps you in the green — even efficient homes develop small drips over time."],
+    ["Fixing even one leak or shortening one shower can visibly move your score — small habits compound fast.",
+     "Try switching to bucket bathing or full-load laundry a few days a week instead of every day."],
+    ["Your usage is high enough to matter — start with the single biggest number in your breakdown below.",
+     "A dripping tap or running flush left for weeks can rival days of bathing water — worth fixing today."]
+  ];
+  const directTips = [
+    "Shorten showers or switch to bucket bathing on a few days a week — an easy 60–100 L/day cut.",
+    "Check for leaks today — a single dripping tap ignored for weeks can cost more than a week of bathing.",
+    "Wash dishes with a filled basin instead of a running tap — a simple 15–20 L/day saving."
+  ];
+  const lifestyleTips = [
+    "Reduce meat consumption to 1-2x/week — could save 200L+ per day in hidden water.",
+    "Buy fewer, longer-lasting clothes — a single pair of jeans hides ~7,500–10,000 L of production water.",
+    "Reduce AC hours and heavy appliance use — power plants consume 300-500L per kWh for cooling."
+  ];
+  const topTips = t.direct >= t.lifestyle ? directTips : lifestyleTips;
+  return [...genericByBand[band], topTips[0]];
+}
+
+function renderResults(){
+  const t = computeTotals();
+  const score = scoreFromTotal(t.perPerson);
+  const band = bandOf(score);
+  const household = Math.round(t.perPerson * familySize);
+  const markerPct = Math.min(100, Math.max(0, (score-1)/9*100));
+  const tips = tipsFor(band, t);
+  
+  // India comparison
+  const indiaUrban = 135;
+  const recommendation = 80;
+  const vs_india = Math.round((t.perPerson / indiaUrban) * 100);
+
+  return `
+    <div class="icon-badge">${icon('drop')}</div>
+    <div class="eyebrow"><span>Your Result</span><span class="line"></span><span>🎉</span></div>
+    <h1 class="title">Here's your water footprint</h1>
+    ${resultsImage()}
+
+    <div class="score-badge">
+      <div>
+        <div class="score-num" style="color:${bandColorVar[band]};">${score.toFixed(1)}</div>
+        <div class="score-of">out of 10</div>
+      </div>
+      <div>
+        <span class="score-word" style="background:color-mix(in srgb, ${bandColorVar[band]} 22%, transparent); color:${bandColorVar[band]};">${bandWord[band]}</span>
+      </div>
+    </div>
+
+    <div class="big-gauge">
+      <div class="big-gauge-track"><div class="big-gauge-marker" style="left:${markerPct}%;"></div></div>
+      <div class="big-gauge-scale"><span>1 · Great</span><span>4</span><span>5</span><span>8</span><span>9 · 10 Excessive</span></div>
+    </div>
+
+    <div class="totals-row">
+      <div class="total-card">
+        <div class="t-emoji">🚿</div>
+        <div class="t-label">Per person / day</div>
+        <div class="t-value">${Math.round(t.perPerson).toLocaleString()} L</div>
+      </div>
+      <div class="total-card">
+        <div class="t-emoji">🏠</div>
+        <div class="t-label">Household / day · ${familySize} ${familySize==1?"person":"people"}</div>
+        <div class="t-value">${household.toLocaleString()} L</div>
+      </div>
+    </div>
+
+    <div class="totals-row">
+      <div class="total-card">
+        <div class="t-emoji">🇮🇳</div>
+        <div class="t-label">vs India Urban Std (135L)</div>
+        <div class="t-value" style="color:${vs_india<=100?'var(--good)':vs_india<=150?'var(--high)':'var(--bad)'};">${vs_india}%</div>
+      </div>
+      <div class="total-card">
+        <div class="t-emoji">✅</div>
+        <div class="t-label">Recommended Target</div>
+        <div class="t-value">${recommendation} L/day</div>
+      </div>
+    </div>
+
+    <div class="info-box ${vs_india <= 100 ? 'note' : 'alert'}">
+      ${vs_india <= 80 ? "🌟 Excellent! You're well below the sustainable target of 80L/day." : 
+        vs_india <= 100 ? "✅ Good! You're near India's urban standard. Small changes can make a big difference." :
+        vs_india <= 150 ? "⚠️ Above average. Focus on leaks, showers, and food choices." :
+        "🔴 High usage. Significant changes needed in multiple areas."}
+    </div>
+
+    <div class="tips">
+      <div class="tips-label">Priority Actions for You</div>
+      ${tips.map(tip=>`<div class="tip">💡 ${tip}</div>`).join("")}
+    </div>
+
+    <button class="btn btn-next restart-btn" id="restartBtn">Start over 🔄</button>
+  `;
+}
+
+/* ============ NAV ============ */
+function renderNav(screen){
+  if(screen.type === "results"){ navInner.innerHTML = ""; return; }
+  const isFirst = current === 0;
+  const canProceed = validate(screen);
+  navInner.innerHTML = `
+    ${isFirst ? "" : `<button class="btn btn-back" id="backBtn">← Back</button>`}
+    <button class="btn btn-next" id="nextBtn" ${canProceed ? "" : "disabled"}>${current === SCREENS.length-2 ? "See my result 💧" : (current===0 ? "Begin →" : "Next →")}</button>
+  `;
+  const backBtn = document.getElementById("backBtn");
+  if(backBtn) backBtn.onclick = ()=>{ current--; render(); };
+  document.getElementById("nextBtn").onclick = ()=>{ current++; render(); };
+}
+
+function validate(screen){
+  if(screen.type === "intro") return true;
+  if(screen.type === "family") return !!familySize;
+  if(screen.type === "info-slide") return true;
+  if(screen.type === "question"){
+    const ans = answers[screen.id];
+    if(!ans) return false;
+    return screen.parts.every((p,pi)=>{
+      if(p.multi) return Array.isArray(ans[pi]) && ans[pi].length > 0;
+      return ans[pi] !== null && ans[pi] !== undefined;
+    });
+  }
+  return true;
+}
+
+/* ============ HANDLERS ============ */
+function attachHandlers(screen){
+  if(screen.type === "family"){
+    document.querySelectorAll(".fam-tile").forEach(tile=>{
+      tile.onclick = ()=>{
+        familySize = tile.dataset.size === "6+" ? 6 : parseInt(tile.dataset.size);
+        render();
+      };
+    });
+  }
+  if(screen.type === "question"){
+    document.querySelectorAll(".option-tile").forEach(tile=>{
+      tile.onclick = ()=>{
+        const sId = tile.dataset.screen;
+        const pIdx = parseInt(tile.dataset.part);
+        const oIdx = parseInt(tile.dataset.opt);
+        const isMulti = tile.dataset.multi === "1";
+        const p = screen.parts[pIdx];
+
+        if(isMulti){
+          const opt = p.options[oIdx];
+          let arr = answers[sId][pIdx] || [];
+          if(opt.exclusive){
+            arr = arr.includes(oIdx) ? [] : [oIdx];
+          } else {
+            arr = arr.filter(i => !p.options[i].exclusive);
+            if(arr.includes(oIdx)) arr = arr.filter(i=>i!==oIdx);
+            else arr.push(oIdx);
+          }
+          answers[sId][pIdx] = arr;
+        } else {
+          answers[sId][pIdx] = oIdx;
+        }
+        render();
+      };
+    });
+  }
+  if(screen.type === "results"){
+    const restartBtn = document.getElementById("restartBtn");
+    if(restartBtn) restartBtn.onclick = ()=>{
+      Object.keys(answers).forEach(k=>delete answers[k]);
+      familySize = 1;
+      current = 0;
+      render();
+    };
+  }
+}
+
+render();
+</script>
+</body>
+</html>
